@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Enough: Human Rights in an Age of Inequality</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap"
+        rel="stylesheet">
+    <style>
+        /* --- THEME CONFIGURATION --- */
+        :root {
+            --bg-dark: #0f172a;
+            /* Slate 900 */
+            --bg-card: #1e293b;
+            /* Slate 800 */
+            --accent-primary: #2dd4bf;
+            /* Teal 400 */
+            --accent-secondary: #fbbf24;
+            /* Amber 400 */
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TYPOGRAPHY */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .serif {
+            font-family: 'Merriweather', serif;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* SLIDE CONTAINER */
+        #slide-stage {
+            flex-grow: 1;
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            padding: 4rem 6rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            z-index: 10;
+        }
+
+        /* UI COMPONENTS */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .img-box {
+            width: 100%;
+            height: 400px;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #334155;
+            position: relative;
+        }
+
+        .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.9;
+            transition: transform 5s ease;
+        }
+
+        .slide.active .img-box img {
+            transform: scale(1.05);
+        }
+
+        /* SPEAKER NOTES */
+        #notes-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: #020617;
+            border-top: 1px solid #334155;
+            transition: height 0.3s ease;
+            z-index: 50;
+            overflow-y: auto;
+            padding: 0 2rem;
+        }
+
+        #notes-panel.open {
+            height: 25vh;
+            padding: 1.5rem 2rem;
+        }
+
+        .note-text {
+            font-family: 'Merriweather', serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* CONTROLS */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 60;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: var(--accent-primary);
+            color: #0f172a;
+            border-color: var(--accent-primary);
+        }
+
+        .btn-notes {
+            background: var(--accent-secondary);
+            color: #0f172a;
+            border-color: var(--accent-secondary);
+        }
+
+        /* PROGRESS BAR */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #1e293b;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* QUIZ STYLES */
+        .quiz-option {
+            border: 2px solid #334155;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.25rem;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        .quiz-reveal {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #334155;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <div id="slide-stage">
+
+        <!-- SLIDE 0: TITLE -->
+        <div class="slide active">
+            <div class="text-center max-w-5xl mx-auto">
+                <p class="text-accent-primary tracking-[0.3em] uppercase mb-4 text-teal-400">English Class Presentation
+                </p>
+                <h1 class="text-7xl md:text-8xl mb-6 leading-tight">Human Rights in an<br><span
+                        class="gradient-text">Age of Inequality</span></h1>
+                <p class="text-2xl text-gray-400 serif italic mb-12">An analysis of Samuel Moyn's "Not Enough"</p>
+                <div class="flex justify-center gap-4 text-sm text-gray-500">
+                    <span><i class="fas fa-user mr-2"></i>Presented by Prithav Jha</span>
+                    <span>|</span>
+                    <span><i class="fas fa-clock mr-2"></i>30 Minutes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 1: ROADMAP -->
+        <div class="slide">
+            <h2 class="text-5xl mb-12 border-l-8 border-teal-400 pl-6">The Journey Ahead</h2>
+            <div class="grid grid-cols-2 gap-8 w-full max-w-6xl">
+                <div class="glass-card">
+                    <div class="text-4xl text-teal-400 font-bold mb-2">01</div>
+                    <h3 class="text-xl">The Toolkit</h3>
+                    <p class="text-gray-400">Glossary, Symbols & The Author</p>
+                </div>
+                <div class="glass-card">
+                    <div class="text-4xl text-teal-400 font-bold mb-2">02</div>
+                    <h3 class="text-xl">The Core Argument</h3>
+                    <p class="text-gray-400">Floors vs. Ceilings</p>
+                </div>
+                <div class="glass-card">
+                    <div class="text-4xl text-teal-400 font-bold mb-2">03</div>
+                    <h3 class="text-xl">Historical Context</h3>
+                    <p class="text-gray-400">Jacobins to Neoliberalism</p>
+                </div>
+                <div class="glass-card">
+                    <div class="text-4xl text-teal-400 font-bold mb-2">04</div>
+                    <h3 class="text-xl">Nepal & Solutions</h3>
+                    <p class="text-gray-400">Connecting theory to our reality</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: AUTHOR -->
+        <div class="slide">
+            <div class="flex gap-12 items-center">
+                <div class="w-1/3">
+                    <div class="img-box">
+                        <img src="https://law.yale.edu/sites/default/files/styles/content_285x393_/public/images/Lynette%20Martins/faculty/moyn-samuel_preferred.jpeg?itok=FY1uL5by"
+                            alt="Professor">
+                    </div>
+                </div>
+                <div class="w-2/3">
+                    <h2 class="text-5xl mb-6">Who is <span class="text-teal-400">Samuel Moyn?</span></h2>
+                    <ul class="space-y-6 text-xl">
+                        <li class="flex items-start"><i class="fas fa-university text-amber-400 mt-1 mr-4"></i>Professor
+                            of Law & History at Yale University.</li>
+                        <li class="flex items-start"><i class="fas fa-bolt text-amber-400 mt-1 mr-4"></i><strong>The
+                                Provocateur:</strong> He challenges the "sacred cow" of Human Rights.</li>
+                        <li class="flex items-start"><i class="fas fa-quote-left text-amber-400 mt-1 mr-4"></i><em>"I am
+                                not against rights. I am saying they are insufficient."</em></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: GLOSSARY 1 -->
+        <div class="slide">
+            <h2 class="text-4xl mb-8 flex items-center gap-4"><i class="fas fa-book text-teal-400"></i> Key Vocabulary
+                (Part 1)</h2>
+            <div class="space-y-6 max-w-4xl">
+                <div class="glass-card border-l-4 border-amber-400">
+                    <h3 class="text-2xl font-bold text-amber-400">Indigence</h3>
+                    <p class="text-lg mt-2">Extreme poverty. Lacking the absolute basics to survive (food, shelter).
+                        <br><span class="text-sm text-gray-400">Moyn argues we have focused entirely on fixing
+                            this.</span>
+                    </p>
+                </div>
+                <div class="glass-card border-l-4 border-teal-400">
+                    <h3 class="text-2xl font-bold text-teal-400">Inequality</h3>
+                    <p class="text-lg mt-2">The <em>gap</em> between the rich and the poor. It's about distribution, not
+                        just survival. <br><span class="text-sm text-gray-400">Moyn argues we have ignored this.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: GLOSSARY 2 -->
+        <div class="slide">
+            <h2 class="text-4xl mb-8 flex items-center gap-4"><i class="fas fa-book text-teal-400"></i> Key Vocabulary
+                (Part 2)</h2>
+            <div class="space-y-6 max-w-4xl">
+                <div class="glass-card">
+                    <h3 class="text-2xl font-bold text-white">Subsistence</h3>
+                    <p class="text-lg mt-2">Maintaining oneself at a minimum level. Just staying alive.</p>
+                </div>
+                <div class="glass-card">
+                    <h3 class="text-2xl font-bold text-white">Neoliberalism</h3>
+                    <p class="text-lg mt-2">A political approach favoring free-market capitalism, deregulation, and
+                        reduction in government spending (popular since the 1970s).</p>
+                </div>
+                <div class="glass-card">
+                    <h3 class="text-2xl font-bold text-white">Egalitarianism</h3>
+                    <p class="text-lg mt-2">The doctrine that all people are equal and deserve equal rights and
+                        opportunities—specifically regarding wealth.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: LITERARY DEVICES -->
+        <div class="slide">
+            <h2 class="text-5xl mb-12 text-center">Symbols & Metaphors</h2>
+            <div class="grid grid-cols-3 gap-8">
+                <div class="glass-card text-center">
+                    <i class="fas fa-crown text-6xl text-amber-400 mb-6"></i>
+                    <h3 class="text-xl font-bold">King Croesus</h3>
+                    <p class="text-sm text-gray-400 mt-2">The benevolent dictator. Represents a system that gives
+                        charity but keeps all power.</p>
+                </div>
+                <div class="glass-card text-center">
+                    <i class="fas fa-layer-group text-6xl text-teal-400 mb-6"></i>
+                    <h3 class="text-xl font-bold">The Floor</h3>
+                    <p class="text-sm text-gray-400 mt-2">Human Rights. A safety net to prevent you from hitting rock
+                        bottom.</p>
+                </div>
+                <div class="glass-card text-center">
+                    <i class="fas fa-ban text-6xl text-red-400 mb-6"></i>
+                    <h3 class="text-xl font-bold">The Ceiling</h3>
+                    <p class="text-sm text-gray-400 mt-2">The limit on wealth. Moyn says this is missing from our
+                        society.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: THE HOOK -->
+        <div class="slide">
+            <div class="text-center">
+                <h2 class="text-6xl font-bold mb-8">The Great Paradox</h2>
+                <div class="flex justify-center items-end h-64 gap-12 mb-8">
+                    <div
+                        class="w-32 bg-teal-500 rounded-t-lg h-[80%] flex items-end justify-center pb-4 text-xl font-bold">
+                        Rights</div>
+                    <div
+                        class="w-32 bg-red-500 rounded-t-lg h-[95%] flex items-end justify-center pb-4 text-xl font-bold">
+                        Inequality</div>
+                </div>
+                <p class="text-3xl serif italic text-gray-300">"Why has the age of Human Rights also been the age of
+                    massive Inequality?"</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: DEFINING RIGHTS -->
+        <div class="slide">
+            <div class="flex gap-12 items-center">
+                <div class="w-1/2">
+                    <h2 class="text-5xl text-teal-400 mb-6">What are Human Rights?</h2>
+                    <p class="text-xl mb-4">Traditionally, these are protections against the State.</p>
+                    <ul class="text-lg space-y-3">
+                        <li><i class="fas fa-check text-green-400 mr-2"></i> Free Speech</li>
+                        <li><i class="fas fa-check text-green-400 mr-2"></i> No Torture</li>
+                        <li><i class="fas fa-check text-green-400 mr-2"></i> Religious Freedom</li>
+                    </ul>
+                    <div class="mt-8 p-4 bg-teal-900/30 border border-teal-500 rounded-lg">
+                        <strong>Focus:</strong> STATUS (You are a human, so you are safe).
+                    </div>
+                </div>
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://cdn.impactguru.com/assets/uploads/challenges/Impactguru-blog-cover6573161e5a9a31702041118.jpg"
+                            alt="Gavel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: DEFINING INEQUALITY -->
+        <div class="slide">
+            <div class="flex gap-12 items-center">
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://merriam-webster.com/assets/mw/images/article/art-wap-landing-mp-lg/inequality-3253-cc93bc503204ef139122e1eb6b0cf9d1@1x.jpg"
+                            alt="Inequality"></div>
+                </div>
+                <div class="w-1/2">
+                    <h2 class="text-5xl text-amber-400 mb-6">What is Inequality?</h2>
+                    <p class="text-xl mb-4">The economic hierarchy of the world.</p>
+                    <ul class="text-lg space-y-3">
+                        <li><i class="fas fa-times text-red-400 mr-2"></i> Wealth Concentration</li>
+                        <li><i class="fas fa-times text-red-400 mr-2"></i> Lack of Social Mobility</li>
+                        <li><i class="fas fa-times text-red-400 mr-2"></i> Corporate Power</li>
+                    </ul>
+                    <div class="mt-8 p-4 bg-amber-900/30 border border-amber-500 rounded-lg">
+                        <strong>Focus:</strong> MATERIAL WEALTH (How much do you own?).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: INTERACTIVE 1 -->
+        <div class="slide">
+            <div class="max-w-3xl mx-auto w-full">
+                <h2 class="text-4xl text-center mb-8"><i class="fas fa-poll"></i> Class Poll</h2>
+                <p class="text-xl text-center mb-8">If you could only choose one guarantee, which would it be?</p>
+                <div class="space-y-4">
+                    <div class="quiz-option" onclick="this.nextElementSibling.style.display='block'">
+                        A. The right to say whatever I want (Free Speech)
+                    </div>
+                    <div class="quiz-reveal text-teal-400">Moyn says our world chose this one.</div>
+
+                    <div class="quiz-option" onclick="this.nextElementSibling.style.display='block'">
+                        B. The guarantee that I will never be poor (Economic Security)
+                    </div>
+                    <div class="quiz-reveal text-amber-400">Moyn argues we forgot about this one.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: THESIS -->
+        <div class="slide">
+            <div class="text-center">
+                <h1 class="text-9xl font-black gradient-text mb-4">NOT ENOUGH</h1>
+                <p class="text-3xl max-w-4xl mx-auto leading-relaxed">
+                    Moyn's Thesis: <br>
+                    Human rights are necessary to prevent catastrophe, but they are <span
+                        class="text-red-400 underline">insufficient</span> to create a fair society because they do not
+                    address wealth distribution.
+                </p>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: SUFFICIENCY -->
+        <div class="slide">
+            <div class="flex items-center gap-12">
+                <div class="w-1/3 text-center">
+                    <i class="fas fa-shield-alt text-9xl text-teal-400"></i>
+                </div>
+                <div class="w-2/3">
+                    <h2 class="text-5xl text-teal-400 mb-4">Concept 1: Sufficiency</h2>
+                    <h3 class="text-2xl text-gray-400 mb-6">(The Floor)</h3>
+                    <p class="text-xl mb-4">"Sufficiency" asks: Does everyone have <em>enough</em> to survive?</p>
+                    <div class="glass-card">
+                        <p class="italic">"It doesn't matter if the guy next door has a private jet, as long as you have
+                            bread."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: EQUALITY -->
+        <div class="slide">
+            <div class="flex items-center gap-12">
+                <div class="w-2/3">
+                    <h2 class="text-5xl text-amber-400 mb-4">Concept 2: Equality</h2>
+                    <h3 class="text-2xl text-gray-400 mb-6">(The Ceiling)</h3>
+                    <p class="text-xl mb-4">"Equality" asks: How far apart are the rich and the poor?</p>
+                    <div class="glass-card">
+                        <p class="italic">"It DOES matter if he has a jet, because that massive wealth gives him power
+                            over you."</p>
+                    </div>
+                </div>
+                <div class="w-1/3 text-center">
+                    <i class="fas fa-balance-scale text-9xl text-amber-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: VISUAL METAPHOR -->
+        <div class="slide">
+            <h2 class="text-4xl text-center mb-12">The House of Justice</h2>
+            <div class="flex justify-center items-center h-96 relative w-full max-w-4xl mx-auto">
+                <!-- The Floor -->
+                <div class="absolute bottom-10 w-full h-4 bg-teal-500 shadow-[0_0_20px_rgba(45,212,191,0.6)]">
+                    <span class="absolute -bottom-8 w-full text-center text-teal-400 font-bold">The Floor (Human
+                        Rights)</span>
+                </div>
+
+                <!-- The Missing Ceiling -->
+                <div class="absolute top-10 w-full h-1 border-t-4 border-dashed border-red-500 opacity-50">
+                    <span class="absolute -top-8 w-full text-center text-red-400 font-bold">The Missing Ceiling
+                        (Equality)</span>
+                </div>
+
+                <!-- The Gap -->
+                <div class="text-center z-10">
+                    <i class="fas fa-arrow-up text-6xl text-amber-400 animate-bounce"></i>
+                    <p class="mt-4">Wealth keeps going up unchecked.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: CROESUS PARABLE -->
+        <div class="slide">
+            <div class="flex gap-8 items-center">
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://www.ancientworldmagazine.com/site/assets/files/2221/vignon.1400x0.jpg"
+                            alt="Croesus"></div>
+                </div>
+                <div class="w-1/2">
+                    <h2 class="text-5xl font-serif text-amber-400 mb-6">The Parable of Croesus</h2>
+                    <p class="text-xl leading-relaxed">
+                        Imagine a King who owns everything. <br>
+                        He is kind. He gives every peasant food, water, and shelter. <br>
+                        No one is starving. No one is tortured.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: INTERPRETING CROESUS -->
+        <div class="slide">
+            <h2 class="text-5xl text-center mb-12">Is Croesus' Kingdom Just?</h2>
+            <div class="grid grid-cols-2 gap-12">
+                <div class="glass-card border-t-4 border-teal-400">
+                    <h3 class="text-2xl text-teal-400 mb-4">Human Rights View</h3>
+                    <p class="text-xl"><strong>YES.</strong> No rights are violated. Everyone has "sufficiency." The
+                        floor is secure.</p>
+                </div>
+                <div class="glass-card border-t-4 border-red-400">
+                    <h3 class="text-2xl text-red-400 mb-4">Moyn's View</h3>
+                    <p class="text-xl"><strong>NO.</strong> It is a dictatorship of wealth. Without equality (a
+                        ceiling), the people are just well-fed pets.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: HISTORY INTRO -->
+        <div class="slide">
+            <div class="text-center">
+                <h2 class="text-6xl mb-6">How did we get here?</h2>
+                <i class="fas fa-history text-8xl text-gray-600"></i>
+                <p class="text-2xl mt-8 max-w-3xl mx-auto">Moyn takes us on a historical tour to show that we didn't
+                    always separate "Rights" from "Money."</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: JACOBINS -->
+        <div class="slide">
+            <div class="flex items-center gap-12">
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://cdn.thecollector.com/wp-content/uploads/2025/05/jacobin-movement-revolutionaries-radicals.jpg"
+                            alt="Revolution"></div>
+                </div>
+                <div class="w-1/2">
+                    <div class="text-sm text-amber-400 font-bold mb-2">PHASE 1: 1790s</div>
+                    <h2 class="text-5xl serif mb-6">The Jacobin Legacy</h2>
+                    <p class="text-xl">During the French Revolution, "Rights" didn't just mean freedom. It meant
+                        <strong>Social Welfare</strong>.
+                    </p>
+                    <p class="mt-4">They believed the state should redistribute wealth. <br><em>Liberty and Equality
+                            were married.</em></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: WELFARE STATE -->
+        <div class="slide">
+            <div class="flex items-center gap-12">
+                <div class="w-1/2">
+                    <div class="text-sm text-amber-400 font-bold mb-2">PHASE 2: 1940s-1960s</div>
+                    <h2 class="text-5xl serif mb-6">The Welfare State</h2>
+                    <p class="text-xl">The "Heroic Age." Governments taxed the rich to build schools, hospitals, and
+                        roads.</p>
+                    <ul class="mt-4 space-y-2">
+                        <li><i class="fas fa-check text-green-400"></i> High Taxes on the Rich</li>
+                        <li><i class="fas fa-check text-green-400"></i> Strong Unions</li>
+                        <li><i class="fas fa-check text-green-400"></i> Goal: Reduce the Class Gap</li>
+                    </ul>
+                </div>
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://media.licdn.com/dms/image/v2/D4E12AQFthHt5VvWyZw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1706203595430?e=2147483647&v=beta&t=jXYj6IOJAXsA3se7AO91TtGay1PoJV27MWnbL0oAv9I"
+                            alt="Factory"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: NEOLIBERAL TURN -->
+        <div class="slide">
+            <div class="text-center">
+                <div class="text-sm text-amber-400 font-bold mb-2">PHASE 3: 1970s-Present</div>
+                <h2 class="text-6xl mb-12">The Neoliberal Turn</h2>
+                <div class="grid grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    <div class="glass-card">
+                        <i class="fas fa-chart-line text-4xl text-red-400 mb-4"></i>
+                        <h3 class="font-bold text-xl">Privatization</h3>
+                        <p>Selling state assets to private companies.</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-hand-holding-usd text-4xl text-red-400 mb-4"></i>
+                        <h3 class="font-bold text-xl">Deregulation</h3>
+                        <p>Removing rules that controlled businesses.</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-globe text-4xl text-red-400 mb-4"></i>
+                        <h3 class="font-bold text-xl">Globalization</h3>
+                        <p>Markets became global; protections became weaker.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: THE BETRAYAL -->
+        <div class="slide">
+            <h2 class="text-6xl text-center mb-12">The Betrayal</h2>
+            <div class="flex gap-12 items-center max-w-5xl mx-auto">
+                <div class="w-1/2 glass-card p-8 relative">
+                    <div class="absolute -top-4 -left-4 bg-teal-500 text-black px-4 py-1 font-bold rounded">Human Rights
+                    </div>
+                    <p class="text-2xl">"I will protect you from torture!"</p>
+                </div>
+                <div class="text-4xl text-gray-500">+</div>
+                <div class="w-1/2 glass-card p-8 relative">
+                    <div class="absolute -top-4 -left-4 bg-red-500 text-black px-4 py-1 font-bold rounded">Neoliberalism
+                    </div>
+                    <p class="text-2xl">"I will take all your money!"</p>
+                </div>
+            </div>
+            <p class="text-center mt-12 text-2xl">Moyn argues Human Rights became a <strong>"powerless
+                    companion"</strong> to Neoliberalism.</p>
+        </div>
+
+        <!-- SLIDE 21: QUOTE -->
+        <div class="slide">
+            <div class="max-w-4xl mx-auto text-center">
+                <i class="fas fa-quote-left text-6xl text-gray-700 mb-8"></i>
+                <blockquote class="text-5xl serif leading-tight text-teal-400">
+                    "Human rights are a floor of protection, but they have failed to provide a ceiling on inequality."
+                </blockquote>
+                <p class="mt-8 text-2xl text-gray-400">- Samuel Moyn</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 22: GLOBAL CONTEXT -->
+        <div class="slide">
+            <h2 class="text-5xl mb-8">Real World: The 1% vs 99%</h2>
+            <div class="flex gap-12 items-center">
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://substackcdn.com/image/fetch/$s_!zQPu!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc1a267a2-4bd7-49f8-aca8-ec26d1f63d22_1280x720.png"
+                            alt="Protest"></div>
+                </div>
+                <div class="w-1/2">
+                    <ul class="space-y-6 text-xl">
+                        <li>Jeff Bezos has enough money to end world hunger, yet Amazon workers struggle.</li>
+                        <li>This is legal. No human rights are "violated" by being a billionaire.</li>
+                        <li class="p-4 bg-red-900/20 border border-red-500 rounded"><strong>Moyn's Point:</strong> The
+                            legal framework allows extreme inequality.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 23: NEPAL CONSTITUTION -->
+        <div class="slide">
+            <div class="text-center max-w-5xl mx-auto">
+                <div class="inline-block bg-red-700 text-white px-6 py-2 rounded-full mb-6 font-bold tracking-wider">
+                    NEPAL SPECIFIC</div>
+                <h2 class="text-5xl mb-8">The Constitution of 2015</h2>
+                <div class="glass-card">
+                    <div class="flex items-center gap-6 justify-center mb-6">
+                        <i class="fas fa-book-open text-6xl text-teal-400"></i>
+                        <div class="text-left">
+                            <h3 class="text-2xl font-bold">31 Fundamental Rights</h3>
+                            <p class="text-gray-400">Right to Housing, Food, Education, Health...</p>
+                        </div>
+                    </div>
+                    <p class="text-xl">On paper, Nepal has one of the most progressive constitutions in the world.</p>
+                    <p class="text-teal-400 font-bold mt-2">The "Floor" is excellent.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 24: NEPAL REALITY -->
+        <div class="slide">
+            <div class="text-center max-w-5xl mx-auto">
+                <h2 class="text-5xl mb-8">But... The Reality?</h2>
+                <div class="flex gap-8">
+                    <div class="w-1/2 glass-card border-t-4 border-amber-400">
+                        <h3 class="text-2xl font-bold mb-4">Brain Drain</h3>
+                        <p class="text-lg">Thousands of youth leave for the Gulf, Australia, and USA every month. Why
+                            leave a country with so many "Rights"?</p>
+                    </div>
+                    <div class="w-1/2 glass-card border-t-4 border-red-400">
+                        <h3 class="text-2xl font-bold mb-4">The Disconnect</h3>
+                        <p class="text-lg">Because rights on paper don't equal economic opportunity. The "Ceiling"
+                            (economic structure) is crushing the "Floor."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 25: NEPAL CROESUS -->
+        <div class="slide">
+            <h2 class="text-5xl text-center mb-8">The "Croesus" of Kathmandu</h2>
+            <div class="flex gap-8 items-center max-w-6xl mx-auto">
+                <div class="w-1/2">
+                    <div class="img-box"><img
+                            src="https://superdesk-pro-c.s3.amazonaws.com/sd-nepalitimes/20221108101152/636a26ec9c7e80680e043a41jpeg.jpg"
+                            alt="Kathmandu"></div>
+                </div>
+                <div class="w-1/2">
+                    <p class="text-2xl mb-6">Think about the gap between the urban elite in Kathmandu and rural farmers
+                        in Karnali.</p>
+                    <p class="text-xl mb-6">We often see charity (giving rice/blankets) as the solution.</p>
+                    <p class="text-2xl font-bold text-red-400">But charity is not Justice. Charity implies a master and
+                        a servant.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 26: WHY LAWS FAIL -->
+        <div class="slide">
+            <h2 class="text-5xl text-center mb-12">Why Laws Aren't Enough</h2>
+            <div class="space-y-6 max-w-3xl mx-auto">
+                <div class="glass-card flex items-center gap-6">
+                    <i class="fas fa-gavel text-4xl text-gray-500"></i>
+                    <div>
+                        <h3 class="text-xl font-bold">Symptomatic Treatment</h3>
+                        <p>Laws punish the crime, but don't fix the poverty that caused it.</p>
+                    </div>
+                </div>
+                <div class="glass-card flex items-center gap-6">
+                    <i class="fas fa-coins text-4xl text-amber-400"></i>
+                    <div>
+                        <h3 class="text-xl font-bold">Wealth Buys Influence</h3>
+                        <p>In an unequal world, the rich can "buy" better justice.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 27: INTERACTIVE 2 -->
+        <div class="slide">
+            <div class="max-w-3xl mx-auto w-full">
+                <h2 class="text-4xl text-center mb-6">Scenario: The Cooperative Crisis</h2>
+                <p class="text-xl text-center mb-8">A Cooperative CEO steals billions. He is arrested (Human Rights law
+                    working). But the poor lose their life savings.</p>
+
+                <h3 class="text-center text-2xl font-bold mb-6">Did the system work?</h3>
+
+                <div class="space-y-4">
+                    <div class="quiz-option" onclick="this.nextElementSibling.style.display='block'">
+                        YES: The thief was caught.
+                    </div>
+                    <div class="quiz-reveal text-red-400">Moyn says this is shallow justice.</div>
+
+                    <div class="quiz-option" onclick="this.nextElementSibling.style.display='block'">
+                        NO: The structural failure destroyed lives anyway.
+                    </div>
+                    <div class="quiz-reveal text-green-400">Correct. Prevention (Equality) is better than Cure
+                        (Punishment).</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 28: SOLUTION -->
+        <div class="slide">
+            <h2 class="text-6xl text-center mb-12">So, What is the Solution?</h2>
+            <div class="grid grid-cols-2 gap-12 max-w-5xl mx-auto">
+                <div class="glass-card text-center bg-teal-900/20">
+                    <i class="fas fa-check text-teal-400 text-5xl mb-4"></i>
+                    <h3 class="text-2xl font-bold mb-2">Keep the Floor</h3>
+                    <p>Don't ditch Human Rights. We need them to prevent tyranny.</p>
+                </div>
+                <div class="glass-card text-center bg-amber-900/20 border-2 border-amber-500">
+                    <i class="fas fa-hammer text-amber-400 text-5xl mb-4"></i>
+                    <h3 class="text-2xl font-bold mb-2">Build a Ceiling</h3>
+                    <p>We need a "New Politics" that taxes wealth, funds public services, and limits extreme power.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 29: STUDENT ACTION -->
+        <div class="slide">
+            <h2 class="text-5xl mb-8 text-center">What can <span class="text-teal-400">Students</span> do?</h2>
+            <div class="grid grid-cols-3 gap-6 max-w-6xl mx-auto">
+                <div class="glass-card">
+                    <h3 class="font-bold text-xl text-amber-400 mb-2">1. Awareness</h3>
+                    <p>Understand that being "charitable" isn't the same as being "fair." Don't just donate; ask why
+                        poverty exists.</p>
+                </div>
+                <div class="glass-card">
+                    <h3 class="font-bold text-xl text-teal-400 mb-2">2. Local Activism</h3>
+                    <p>Support public education and health. These are the great equalizers.</p>
+                </div>
+                <div class="glass-card">
+                    <h3 class="font-bold text-xl text-white mb-2">3. Question Narratives</h3>
+                    <p>When you see a "success story" of a billionaire, ask: "At whose cost?"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 30: CONCLUSION -->
+        <div class="slide">
+            <div class="text-center max-w-4xl mx-auto">
+                <h2 class="text-6xl serif mb-6">Conclusion</h2>
+                <p class="text-3xl leading-relaxed mb-8">
+                    We cannot be satisfied with a world that is merely "not cruel." <br>
+                    We must strive for a world that is <strong class="text-teal-400">fair</strong>.
+                </p>
+                <div class="w-24 h-1 bg-amber-400 mx-auto"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 31: Q&A -->
+        <div class="slide">
+            <div class="text-center">
+                <i class="far fa-comments text-9xl text-teal-400 mb-8"></i>
+                <h2 class="text-7xl font-bold">Questions?</h2>
+                <p class="text-2xl mt-4 text-gray-400">Let's discuss Samuel Moyn's ideas.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 32: THANK YOU -->
+        <div class="slide">
+            <div class="text-center">
+                <h1 class="text-8xl font-black gradient-text mb-8">THANK YOU</h1>
+                <p class="text-xl text-gray-500">Presentation by <br>Prithav Jha<br>Shasank Khadka<br>Abhishek
+                    Chaudhary<br>Sulabh Thakuri<br>Ayush Lamichhane<br>Kritika Kakshyapati<br>Roshika Aacharya</p>
+                <div class="mt-12 text-sm text-gray-600 border-t border-gray-800 pt-8">
+                    <p><strong>References:</strong></p>
+                    <p>Moyn, Samuel. <em>Not Enough: Human Rights in an Unequal World.</em> Harvard University Press,
+                        2018.</p>
+                    <p>The Guardian Reviews | Yale Law Review</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- UI CONTROLS -->
+    <div class="controls">
+        <button class="btn" onclick="moveSlide(-1)"><i class="fas fa-arrow-left"></i></button>
+        <button class="btn" onclick="moveSlide(1)"><i class="fas fa-arrow-right"></i></button>
+        <button class="btn btn-notes" onclick="toggleNotes()"><i class="fas fa-sticky-note mr-2"></i> Notes</button>
+    </div>
+
+    <div id="notes-panel">
+        <div class="note-text" id="note-content"></div>
+    </div>
+
+    <script>
+        // --- SCRIPT DATA ---
+        const scripts = [
+            "Welcome, everyone. Today, we aren't just talking about laws or history. We are talking about the fundamental gap between survival and fairness. We are diving into Samuel Moyn's provocative essay 'Not Enough: Human Rights in an Age of Inequality.'",
+            "Here is our roadmap. We will start by building a toolkit—learning the words and symbols Moyn uses. Then we will tackle his core argument: the difference between a 'floor' and a 'ceiling.' We'll look at history, from the French Revolution to today, and finally, connect it to our lives here in Nepal.",
+            "First, meet the man behind the argument: Samuel Moyn. He's a Professor at Yale. He is controversial because he critiques the 'Human Rights' movement—not because he hates rights, but because he thinks they have become a distraction from the real problem: massive economic inequality.",
+            "Let's get our vocabulary straight. 'Indigence' means starving—the very bottom. 'Inequality' is different—it's the gap between the rich and poor. Moyn argues we fixed Indigence but ignored Inequality.",
+            "Continuing with our toolkit: 'Subsistence' is just staying alive. 'Neoliberalism' is the economic system we live in now—market-focused. 'Egalitarianism' is the belief that wealth should be shared more equally.",
+            "Moyn uses powerful symbols. King Croesus—a rich king who feeds his people but owns them. The Floor—our safety net. The Ceiling—the limit on how rich someone can get (which Moyn says is missing). Keep these images in mind.",
+            "Here is the hook. Look at this graph. In the last 40 years, Human Rights laws have exploded. We have more treaties than ever. But at the exact same time, Economic Inequality has skyrocketed. Why?",
+            "To understand this, we need to define Human Rights. Traditionally, they are about STATUS. You have the status of a human, so you can't be tortured or silenced. These are crucial.",
+            "But Inequality is about MATERIAL WEALTH. It's about who owns the land, the factories, the data. You can have free speech and still starve.",
+            "Quick question for the room. Be honest. [Read Poll Options]. Moyn argues our global system chose A and forgot B.",
+            "This leads to the Thesis: NOT ENOUGH. Moyn isn't saying Rights are bad. He says they are insufficient. They are a bandage on a bullet wound.",
+            "Concept 1: Sufficiency. This is the 'Floor.' We agree that no one should starve. We set a minimum. This is great! It stops absolute misery.",
+            "Concept 2: Equality. This is the 'Ceiling.' We used to care about this—making sure no one was too powerful. But we stopped. Now, the sky is the limit for the rich.",
+            "Let's visualize this. We built a floor, which is good. But we took the roof off the house. The rich keep going up, leaving the rest of us behind.",
+            "Moyn tells the story of King Croesus. Imagine a perfect dictator. He feeds you. He clothes you. He never beats you. But he owns everything. Is that freedom?",
+            "A Human Rights lawyer might look at Croesus and say, 'Good job! No violations here.' But Moyn says, 'This is terrible. It's a hierarchy.'",
+            "How did we get here? Moyn takes us on a historical tour to show that we didn't always separate 'Rights' from 'Money.'",
+            "Phase 1: The Jacobins in the French Revolution didn't separate rights from money. They believed to be free, you had to be somewhat equal.",
+            "Phase 2: After World War II, we had the 'Welfare State.' Governments taxed the rich to build public schools and hospitals. The goal was to shrink the gap.",
+            "Phase 3: The Neoliberal Turn. We started selling off public assets. We said 'Greed is Good.' Efficiency became more important than equality.",
+            "And here is the betrayal. As Neoliberalism took over, Human Rights became its companion. Rights said, 'Okay, you can get rich, just don't torture anyone.'",
+            "'Human rights are a floor of protection, but they have failed to provide a ceiling on inequality.' This is the quote to remember.",
+            "Look at the world today. We have billionaires going to space while their workers need food stamps. This is the world Moyn warned us about.",
+            "Bring it home to Nepal. Our 2015 Constitution is amazing. It promises everything. But look at the Brain Drain. Why are people leaving?",
+            "Because a piece of paper offering rights doesn't put money in your pocket. The 'Ceiling'—the economic structure—is crushing the 'Floor.'",
+            "We have our own 'Croesus' figures in Kathmandu. The elite who run charities but pay low wages. Charity is not a substitute for Justice.",
+            "Laws treat symptoms. They punish the thief but don't ask why he had to steal. We need to fix the structure.",
+            "Think about the Co-op crisis. The law might catch the guy eventually, but it didn't protect the savings of the poor. That's a structural failure.",
+            "So, solution? Don't burn the floor. Keep human rights. But we need to build a ceiling. We need a new politics that talks about wealth distribution.",
+            "As students, what can you do? Be aware. Question the narrative that 'Growth' is everything. Advocate for public services.",
+            "To conclude: We want a world that is FAIR, not just a world that isn't cruel.",
+            "Thank you. Any questions?",
+            "Thank you for listening."
+        ];
+
+        // --- APP LOGIC ---
+        let currentIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progress');
+        const noteContent = document.getElementById('note-content');
+        const notesPanel = document.getElementById('notes-panel');
+
+        function updateSlide() {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === currentIndex) slide.classList.add('active');
+            });
+
+            // Update Progress
+            const progress = ((currentIndex + 1) / slides.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Update Notes
+            noteContent.innerHTML = `<strong>Slide ${currentIndex + 1} Script:</strong><br>${scripts[currentIndex] || "No script available for this slide."}`;
+        }
+
+        function moveSlide(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < slides.length) {
+                currentIndex = newIndex;
+                updateSlide();
+            }
+        }
+
+        function toggleNotes() {
+            notesPanel.classList.toggle('open');
+        }
+
+        // Keyboard Nav
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') moveSlide(1);
+            if (e.key === 'ArrowLeft') moveSlide(-1);
+        });
+
+        // Initialize
+        updateSlide();
+
+    </script>
+</body>
+
+</html>
